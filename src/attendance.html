@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet"
+  />
+  <title>Attendance Tracker</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Poppins", sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #datetime {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 1.5rem;
+      color: #4d3cf0;
+      font-weight: bold;
+    }
+
+    table {
+      margin: 0 auto; /* Center the table horizontally */
+      border-collapse: collapse;
+      width: 60%;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #4d3cf0;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+    <!-- Logo section -->
+    <div style="position: absolute; top: 20px; left: 20px">
+      <img src="../src/assets/logo-light.png" alt="Logo" width="150" />
+    </div>
+  
+    <!-- Date and Time -->
+    <div id="datetime"></div>
+
+  <h1>Attendance</h1>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="attendance-body">
+      <tr>
+        <td>1</td>
+        <td>John Doe</td>
+        <td>2024-10-24 09:00 AM</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Jane Smith</td>
+        <td>2024-10-24 09:05 AM</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Mike Johnson</td>
+        <td>2024-10-24 09:10 AM</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Lisa Brown</td>
+        <td>2024-10-24 09:15 AM</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Paul Davis</td>
+        <td>2024-10-24 09:20 AM</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Emma Wilson</td>
+        <td>2024-10-24 09:25 AM</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    // Function to update the date and time
+    function updateDateTime() {
+      const now = new Date();
+      const options = {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      const formattedDate = now.toLocaleDateString("en-US", options);
+      document.getElementById("datetime").textContent = formattedDate;
+    }
+
+    // Call the function to set the date and time when the page loads
+    window.onload = function () {
+      updateDateTime();
+    };
+
+
+
+    // Example of how to update the table dynamically if needed
+    window.electronAPI.updateAttendance((event, userData) => {
+      const tableBody = document.getElementById('attendance-body');
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${userData.id}</td><td>${userData.name}</td><td>${new Date().toLocaleString()}</td>`;
+      tableBody.appendChild(row);
+    });
+  </script>
+
+</body>
+</html>
