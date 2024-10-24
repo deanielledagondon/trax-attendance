@@ -6,8 +6,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap"
     rel="stylesheet"
   />
   <title>Attendance Tracker</title>
@@ -62,63 +64,59 @@
     tr:hover {
       background-color: #f1f1f1;
     }
+
+    /* Input area styling */
+    #qrInput {
+      display: block;
+      margin: 20px auto;
+      padding: 10px;
+      font-size: 1.2rem;
+      width: 60%;
+      border: 2px solid #4d3cf0;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #qrInput:focus {
+      outline: none;
+      border-color: #3b28c6;
+    }
   </style>
 </head>
 <body>
 
-    <!-- Logo section -->
-    <div style="position: absolute; top: 20px; left: 20px">
-      <img src="../src/assets/logo-light.png" alt="Logo" width="150" />
-    </div>
+  <!-- Logo section -->
+  <div style="position: absolute; top: 20px; left: 20px">
+    <img src="../src/assets/logo-light.png" alt="Logo" width="150" />
+  </div>
   
-    <!-- Date and Time -->
-    <div id="datetime"></div>
+  <!-- Date and Time -->
+  <div id="datetime"></div>
 
   <h1>Attendance</h1>
+
+  <!-- QR Input field -->
+  <textarea id="qrInput" placeholder="Scan your QR Code here"></textarea>
+  <div id="message" style="color: red; text-align: center; margin-top: 10px;"></div>
   
   <table>
     <thead>
       <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Course</th>
+        <th>Year</th>
         <th>Timestamp</th>
       </tr>
     </thead>
     <tbody id="attendance-body">
-      <tr>
-        <td>1</td>
-        <td>John Doe</td>
-        <td>2024-10-24 09:00 AM</td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>Jane Smith</td>
-        <td>2024-10-24 09:05 AM</td>
-      </tr>
-      <tr>
-        <td>3</td>
-        <td>Mike Johnson</td>
-        <td>2024-10-24 09:10 AM</td>
-      </tr>
-      <tr>
-        <td>4</td>
-        <td>Lisa Brown</td>
-        <td>2024-10-24 09:15 AM</td>
-      </tr>
-      <tr>
-        <td>5</td>
-        <td>Paul Davis</td>
-        <td>2024-10-24 09:20 AM</td>
-      </tr>
-      <tr>
-        <td>6</td>
-        <td>Emma Wilson</td>
-        <td>2024-10-24 09:25 AM</td>
-      </tr>
+      <!-- Existing table rows -->
     </tbody>
   </table>
 
   <script>
+    let scanTimeout;
+
     // Function to update the date and time
     function updateDateTime() {
       const now = new Date();
@@ -139,14 +137,107 @@
       updateDateTime();
     };
 
+    // Load CSV data (dummy function, replace with actual logic)
+    function loadCSV(onComplete, onError) {
+      const csvFilePath = "official_list_it_students.csv";
+      Papa.parse(csvFilePath, {
+        download: true,
+        header: true,
+        complete: function (results) {
+          onComplete(results.data);
+        },
+        error: function (error) {
+          console.error("Error parsing CSV:", error);
+          if (onError) onError(error);
+        },
+      });
+    }
 
 
-    // Example of how to update the table dynamically if needed
-    window.electronAPI.updateAttendance((event, userData) => {
-      const tableBody = document.getElementById('attendance-body');
-      const row = document.createElement('tr');
-      row.innerHTML = `<td>${userData.id}</td><td>${userData.name}</td><td>${new Date().toLocaleString()}</td>`;
-      tableBody.appendChild(row);
+    function isIdAlreadyInTable(id) {
+  const tableBody = document.getElementById("attendance-body");
+  const rows = tableBody.getElementsByTagName("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    const rowId = rows[i].getElementsByTagName("td")[0].textContent;
+    if (rowId === id) {
+      return true; // ID found in table
+    }
+  }
+  return false; // ID not found in table
+}
+
+    function displayMessage(msg, isError = true) {
+      const messageDiv = document.getElementById("message");
+      messageDiv.textContent = msg;
+      messageDiv.style.color = isError ? "red" : "green";
+      setTimeout(() => {
+        messageDiv.textContent = ""; // Clear the message after 3 seconds
+      }, 3000);
+    }
+
+    // Function to add a scanned student to the table
+    function addStudentToTable(id, name, course, year) {
+
+    if (isIdAlreadyInTable(id)) {
+      displayMessage("Student with ID " + id + " is already marked as present.");
+    return; // Exit the function to prevent duplicate entry
+    }
+
+      const timestamp = new Date().toLocaleString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      const tableBody = document.getElementById("attendance-body");
+
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+        <td>${id}</td>
+        <td>${name}</td>
+        <td>${course}</td>
+        <td>${year}</td>
+        <td>${timestamp}</td>
+      `;
+
+      tableBody.appendChild(newRow);
+      displayMessage("Student with ID " + id + " successfully added.", false);
+    }
+
+    // QR Code input listener
+    document.getElementById("qrInput").addEventListener("input", function (event) {
+      clearTimeout(scanTimeout);
+
+      scanTimeout = setTimeout(() => {
+        const input = event.target.value.trim(); // Trim any leading/trailing whitespace
+
+        // Extract the 10-digit ID
+        const idMatch = input.match(/\d{10}/);
+
+        if (idMatch) {
+          const id = idMatch[0];
+
+          // Load and validate ID against CSV data
+          loadCSV(function (data) {
+            const student = data.find((student) => student.id === id);
+
+            if (student) {
+              document.getElementById("qrInput").value = "";
+              addStudentToTable(id, student.name, student.course, student.year);  // Add student to table
+            } else {
+              event.target.value = ""; // Clear input field for invalid ID
+              event.target.placeholder = "Invalid ID. Scan again.";
+            }
+          });
+        } else {
+          event.target.value = ""; // Clear input field for invalid ID
+          event.target.placeholder = "Invalid ID. Scan again.";
+        }
+      }, 500);
     });
   </script>
 

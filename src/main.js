@@ -8,7 +8,7 @@ app.on('ready', () => {
     width: 800,
     height: 600,
     fullscreen: true,
-    frame: false,     // Remove window frame (toolbar)
+    // frame: false,     // Remove window frame (toolbar)
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), // Preload file is in the same folder as main.js
       nodeIntegration: true,
