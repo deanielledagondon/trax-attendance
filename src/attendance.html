@@ -265,6 +265,7 @@
           displayMessage(
             "Student with ID " + id + " is already marked as present."
           );
+          document.getElementById("qrInput").focus();
           return; // Exit the function to prevent duplicate entry
         }
 
@@ -369,6 +370,7 @@
                 } else {
                   event.target.value = ""; // Clear input field for invalid ID
                   event.target.placeholder = "Invalid ID. Scan again.";
+                  document.getElementById("qrInput").focus();
                 }
               });
             } else {
