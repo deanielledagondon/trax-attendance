@@ -291,6 +291,7 @@
         tableBody.insertBefore(newRow, tableBody.firstChild);
         attendanceData.push({ id, name, section, timestamp });
         displayMessage("Student with ID " + id + " successfully added.", false);
+        document.getElementById("qrInput").focus();
       }
 
       function downloadCSV(section) {
